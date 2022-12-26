@@ -1,5 +1,6 @@
 package org.example.util;
 
+import lombok.experimental.UtilityClass;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -14,6 +15,7 @@ import java.math.RoundingMode;
 import java.util.*;
 import java.util.regex.Pattern;
 
+@UtilityClass
 public final class ExportFileReader {
     private static final int ASSET_NAME_INDEX = 1;
     private static final int UNITS_INDEX = 4;
@@ -21,8 +23,6 @@ public final class ExportFileReader {
     private static final int AMOUNT_IN_USD_INDEX = 2;
     private static final String DELIMITER_SPACE = " ";
     private static final String SUCCESS_STATUS = "Success";
-
-    private ExportFileReader() {}
 
     public static Collection<Asset> readExportFile(String filePath) throws IOException {
         FileInputStream inputFile = new FileInputStream(filePath);
