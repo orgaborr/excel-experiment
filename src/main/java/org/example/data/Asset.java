@@ -1,9 +1,6 @@
 package org.example.data;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -11,7 +8,9 @@ import java.math.BigDecimal;
 @Getter
 @Setter
 @ToString
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Asset {
+    @EqualsAndHashCode.Include
     private String assetName;
     private BigDecimal units;
     private boolean successful;

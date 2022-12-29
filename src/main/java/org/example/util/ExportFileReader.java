@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public final class ExportFileReader {
@@ -32,7 +33,7 @@ public final class ExportFileReader {
         Workbook workbook = new XSSFWorkbook(inputFile);
         Sheet sheet = workbook.getSheetAt(0);
 
-        Set<Asset> assetSet = new HashSet<>();
+        List<Asset> assetList = new ArrayList<>();
         for (Row row : sheet) {
             if (row.getRowNum() == 0) {
                 continue;
@@ -52,13 +53,52 @@ public final class ExportFileReader {
                 }
             }
             asset.setAssetCostUsd(asset.getAmountInUsd().divide(asset.getUnits(), 4, RoundingMode.HALF_EVEN));
-            assetSet.add(asset);
+            assetList.add(asset);
         }
 
-        return assetSet;
+        return mergeSameAssetPurchases(assetList);
     }
 
     private static String getPureValue(String cellValue) {
         return cellValue.split(DELIMITER_SPACE)[0];
+    }
+
+    private static Collection<Asset> mergeSameAssetPurchases(List<Asset> assetList) {
+        Map<String, List<Asset>> assetNameAssetListMap = assetList.stream().collect(Collectors.groupingBy(Asset::getAssetName));
+        Set<Asset> assetSet = new HashSet<>();
+        assetNameAssetListMap.forEach((assetName, purchases) -> {
+            if (purchases.size() == 1) {
+                assetSet.add(purchases.get(0));
+            } else {
+                assetSet.add(summarizeAssetPurchases(assetName, purchases));
+            }
+        });
+        return assetSet;
+    }
+
+    private static Asset summarizeAssetPurchases(String assetName, List<Asset> purchases) {
+        Asset finalAsset = new Asset();
+        finalAsset.setAssetName(assetName);
+
+        BigDecimal units = BigDecimal.ZERO;
+        BigDecimal amountInUsd = BigDecimal.ZERO;
+
+        for (Asset asset : purchases) {
+            if (!asset.isSuccessful()) {
+                System.out.printf("A purchase for %s was unsuccessful and was ignored! Please check the import file.", assetName);
+            } else {
+                units = units.add(asset.getUnits());
+                amountInUsd = amountInUsd.add(asset.getAmountInUsd());
+            }
+        }
+
+        if (!BigDecimal.ZERO.equals(units) && !BigDecimal.ZERO.equals(amountInUsd)) {
+            finalAsset.setSuccessful(true);
+            finalAsset.setUnits(units);
+            finalAsset.setAmountInUsd(amountInUsd);
+            finalAsset.setAssetCostUsd(amountInUsd.divide(units, 4, RoundingMode.HALF_EVEN));
+        }
+
+        return finalAsset;
     }
 }
