@@ -45,7 +45,7 @@ public class AssetPurchaseCalculatorTest {
         AssetPurchase testPurchase = new AssetPurchase();
         testPurchase.setAssetName("testAsset");
         testPurchase.setSuccessful(true);
-        testPurchase.setAssetCostUsd(new BigDecimal("10"));
+        testPurchase.setAmountInUsd(new BigDecimal("10"));
         testPurchase.setUnits(new BigDecimal("5"));
 
         List<AssetPurchase> purchases = new ArrayList<>();
@@ -59,17 +59,113 @@ public class AssetPurchaseCalculatorTest {
     }
 
     @Test
-    void testMergeSameAssetPurchasesWithUnsuccessfulSinglePurchaseIsEmpty() {
-        AssetPurchase testPurchase = new AssetPurchase();
-        testPurchase.setAssetName("testAsset");
-        testPurchase.setSuccessful(false);
-        testPurchase.setAssetCostUsd(new BigDecimal("10"));
-        testPurchase.setUnits(new BigDecimal("5"));
+    void testMergeSameAssetPurchasesWithMultiplePurchases() {
+        AssetPurchase testPurchase1 = new AssetPurchase();
+        testPurchase1.setAssetName("testAsset");
+        testPurchase1.setSuccessful(true);
+        testPurchase1.setAmountInUsd(new BigDecimal("10"));
+        testPurchase1.setUnits(new BigDecimal("5"));
+
+        AssetPurchase testPurchase2 = new AssetPurchase();
+        testPurchase2.setAssetName("testAsset");
+        testPurchase2.setSuccessful(true);
+        testPurchase2.setAmountInUsd(new BigDecimal("10"));
+        testPurchase2.setUnits(new BigDecimal("10"));
 
         List<AssetPurchase> purchases = new ArrayList<>();
-        purchases.add(testPurchase);
+        purchases.add(testPurchase1);
+        purchases.add(testPurchase2);
 
         Collection<AssetPurchase> combinedPurchases = AssetCalculator.mergeSameAssetPurchases(purchases);
-        assertTrue(combinedPurchases.isEmpty());
+        assertEquals(1, combinedPurchases.stream().distinct().count());
+
+        combinedPurchases.forEach((AssetPurchase ap) -> {
+            assertEquals(new BigDecimal("20"), ap.getAmountInUsd());
+            assertEquals(new BigDecimal("15"), ap.getUnits());
+        });
+    }
+
+    @Test
+    void testMergeSameAssetPurchasesWithMultipleDifferentAssetPurchases() {
+        AssetPurchase testPurchase1 = new AssetPurchase();
+        testPurchase1.setAssetName("testAsset");
+        testPurchase1.setSuccessful(true);
+        testPurchase1.setAmountInUsd(new BigDecimal("10"));
+        testPurchase1.setUnits(new BigDecimal("5"));
+
+        AssetPurchase testPurchase2 = new AssetPurchase();
+        testPurchase2.setAssetName("testAsset");
+        testPurchase2.setSuccessful(true);
+        testPurchase2.setAmountInUsd(new BigDecimal("10"));
+        testPurchase2.setUnits(new BigDecimal("10"));
+
+        AssetPurchase testPurchase3 = new AssetPurchase();
+        testPurchase3.setAssetName("differentAsset");
+        testPurchase3.setSuccessful(true);
+        testPurchase3.setAmountInUsd(new BigDecimal("10"));
+        testPurchase3.setUnits(new BigDecimal("10"));
+
+        List<AssetPurchase> purchases = new ArrayList<>();
+        purchases.add(testPurchase1);
+        purchases.add(testPurchase2);
+        purchases.add(testPurchase3);
+
+        Collection<AssetPurchase> combinedPurchases = AssetCalculator.mergeSameAssetPurchases(purchases);
+        assertEquals(2, combinedPurchases.stream().distinct().count());
+    }
+
+    @Test
+    void testMergeSameAssetPurchasesWithMultiplePurchasesWithOneUnsuccessful() {
+        AssetPurchase testPurchase1 = new AssetPurchase();
+        testPurchase1.setAssetName("testAsset");
+        testPurchase1.setSuccessful(true);
+        testPurchase1.setAmountInUsd(new BigDecimal("10"));
+        testPurchase1.setUnits(new BigDecimal("5"));
+
+        AssetPurchase testPurchase2 = new AssetPurchase();
+        testPurchase2.setAssetName("testAsset");
+        testPurchase2.setSuccessful(false);
+        testPurchase2.setAmountInUsd(new BigDecimal("10"));
+        testPurchase2.setUnits(new BigDecimal("10"));
+
+        List<AssetPurchase> purchases = new ArrayList<>();
+        purchases.add(testPurchase1);
+        purchases.add(testPurchase2);
+
+        Collection<AssetPurchase> combinedPurchases = AssetCalculator.mergeSameAssetPurchases(purchases);
+        assertEquals(1, combinedPurchases.stream().distinct().count());
+
+        combinedPurchases.forEach((AssetPurchase ap) -> {
+            assertEquals(new BigDecimal("10"), ap.getAmountInUsd());
+            assertEquals(new BigDecimal("5"), ap.getUnits());
+        });
+    }
+
+    @Test
+    void testMergeSameAssetPurchasesWithMultiplePurchasesWithBothUnsuccessful() {
+        AssetPurchase testPurchase1 = new AssetPurchase();
+        testPurchase1.setAssetName("testAsset");
+        testPurchase1.setSuccessful(false);
+        testPurchase1.setAmountInUsd(new BigDecimal("10"));
+        testPurchase1.setUnits(new BigDecimal("5"));
+
+        AssetPurchase testPurchase2 = new AssetPurchase();
+        testPurchase2.setAssetName("testAsset");
+        testPurchase2.setSuccessful(false);
+        testPurchase2.setAmountInUsd(new BigDecimal("10"));
+        testPurchase2.setUnits(new BigDecimal("10"));
+
+        List<AssetPurchase> purchases = new ArrayList<>();
+        purchases.add(testPurchase1);
+        purchases.add(testPurchase2);
+
+        Collection<AssetPurchase> combinedPurchases = AssetCalculator.mergeSameAssetPurchases(purchases);
+        assertEquals(1, combinedPurchases.stream().distinct().count());
+
+        combinedPurchases.forEach((AssetPurchase ap) -> {
+            assertFalse(ap.isSuccessful());
+            assertNull(ap.getAmountInUsd());
+            assertNull(ap.getUnits());
+        });
     }
  }
