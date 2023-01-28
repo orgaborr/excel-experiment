@@ -1,12 +1,16 @@
 package org.example.util;
 
+import org.example.data.AssetPurchase;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class AssetCalculatorTest {
+public class AssetPurchaseCalculatorTest {
 
     @Test
     void testCalculateAssetCostUsd() {
@@ -34,5 +38,38 @@ public class AssetCalculatorTest {
     void testCalculateAssetCostUsdWithZero() {
         assertEquals(new BigDecimal("0.0000"), AssetCalculator.calculateAssetCostUsd(BigDecimal.ZERO, new BigDecimal("5")));
         assertThrows(ArithmeticException.class, () -> AssetCalculator.calculateAssetCostUsd(new BigDecimal("100"), BigDecimal.ZERO));
+    }
+
+    @Test
+    void testMergeSameAssetPurchasesWithSinglePurchase() {
+        AssetPurchase testPurchase = new AssetPurchase();
+        testPurchase.setAssetName("testAsset");
+        testPurchase.setSuccessful(true);
+        testPurchase.setAssetCostUsd(new BigDecimal("10"));
+        testPurchase.setUnits(new BigDecimal("5"));
+
+        List<AssetPurchase> purchases = new ArrayList<>();
+        purchases.add(testPurchase);
+
+        Collection<AssetPurchase> combinedPurchases = AssetCalculator.mergeSameAssetPurchases(purchases);
+        combinedPurchases.forEach((AssetPurchase ap) -> {
+            assertEquals(testPurchase.getAssetCostUsd(), ap.getAssetCostUsd());
+            assertEquals(testPurchase.getUnits(), ap.getUnits());
+        });
+    }
+
+    @Test
+    void testMergeSameAssetPurchasesWithUnsuccessfulSinglePurchaseIsEmpty() {
+        AssetPurchase testPurchase = new AssetPurchase();
+        testPurchase.setAssetName("testAsset");
+        testPurchase.setSuccessful(false);
+        testPurchase.setAssetCostUsd(new BigDecimal("10"));
+        testPurchase.setUnits(new BigDecimal("5"));
+
+        List<AssetPurchase> purchases = new ArrayList<>();
+        purchases.add(testPurchase);
+
+        Collection<AssetPurchase> combinedPurchases = AssetCalculator.mergeSameAssetPurchases(purchases);
+        assertTrue(combinedPurchases.isEmpty());
     }
  }

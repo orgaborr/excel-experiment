@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 @Setter
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public class Asset {
+public class AssetPurchase {
     @EqualsAndHashCode.Include
     private String assetName;
     private BigDecimal units;
