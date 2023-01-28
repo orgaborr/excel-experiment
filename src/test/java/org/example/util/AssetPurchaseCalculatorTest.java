@@ -82,6 +82,7 @@ public class AssetPurchaseCalculatorTest {
         combinedPurchases.forEach((AssetPurchase ap) -> {
             assertEquals(new BigDecimal("20"), ap.getAmountInUsd());
             assertEquals(new BigDecimal("15"), ap.getUnits());
+            assertEquals(new BigDecimal("1.3333"), ap.getAssetCostUsd());
         });
     }
 
@@ -138,6 +139,7 @@ public class AssetPurchaseCalculatorTest {
         combinedPurchases.forEach((AssetPurchase ap) -> {
             assertEquals(new BigDecimal("10"), ap.getAmountInUsd());
             assertEquals(new BigDecimal("5"), ap.getUnits());
+            assertEquals(new BigDecimal("2.0000"), ap.getAssetCostUsd());
         });
     }
 
@@ -166,6 +168,7 @@ public class AssetPurchaseCalculatorTest {
             assertFalse(ap.isSuccessful());
             assertNull(ap.getAmountInUsd());
             assertNull(ap.getUnits());
+            assertNull(ap.getAssetCostUsd());
         });
     }
  }
